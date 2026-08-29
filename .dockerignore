@@ -1,0 +1,10 @@
+.git
+.github
+*.md
+docs
+deployments/README*
+bin
+coverage.out
+.env
+.env.*
+!.env.example

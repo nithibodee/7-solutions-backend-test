@@ -1,0 +1,15 @@
+with-expecter: true
+dir: "test/mocks"
+outpkg: "mocks"
+mockname: "Mock{{.InterfaceName}}"
+filename: "{{.InterfaceName}}.go"
+packages:
+  github.com/nithibodee/7-solutions-backend-test/internal/domain/user:
+    interfaces:
+      Repository:
+      PasswordHasher:
+      TokenIssuer:
+      TokenValidator:
+  github.com/nithibodee/7-solutions-backend-test/internal/app/user:
+    interfaces:
+      Service:
