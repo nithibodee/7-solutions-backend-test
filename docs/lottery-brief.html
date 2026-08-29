@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ten Million Tickets — Lottery Search Design Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..48,500;12..48,600;12..48,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --ground: #f5f6fa;
+    --paper: #ffffff;
+    --panel: #eef0f7;
+    --ink: #16181f;
+    --ink-soft: #45495a;
+    --ink-faint: #6c7185;
+    --rule: #e0e2ee;
+    --rule-strong: #c9ccdd;
+    --accent: #3b3fd6;
+    --accent-soft: #e9e9fb;
+    --accent-ink: #2a2ea8;
+    --ok: #1f8a4c;
+    --warn: #b7791f;
+    --sold: #64708a;
+    --shadow: 0 1px 2px rgba(20, 22, 40, .04), 0 8px 28px rgba(20, 22, 40, .06);
+
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0e0f15;
+      --paper: #16171f;
+      --panel: #1c1e28;
+      --ink: #e9eaf1;
+      --ink-soft: #b3b6c6;
+      --ink-faint: #8a8ea3;
+      --rule: #282a37;
+      --rule-strong: #3a3d4e;
+      --accent: #9297ff;
+      --accent-soft: #21223a;
+      --accent-ink: #b9bcff;
+      --ok: #4cc47e;
+      --warn: #e0a94b;
+      --sold: #8b96af;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 34px rgba(0, 0, 0, .38);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0e0f15;
+    --paper: #16171f;
+    --panel: #1c1e28;
+    --ink: #e9eaf1;
+    --ink-soft: #b3b6c6;
+    --ink-faint: #8a8ea3;
+    --rule: #282a37;
+    --rule-strong: #3a3d4e;
+    --accent: #9297ff;
+    --accent-soft: #21223a;
+    --accent-ink: #b9bcff;
+    --ok: #4cc47e;
+    --warn: #e0a94b;
+    --sold: #8b96af;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 34px rgba(0, 0, 0, .38);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    font-optical-sizing: auto;
+  }
+
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .bleed {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ---------- type ---------- */
+  h1, h2, h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    color: var(--ink);
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 6vw, 3.15rem);
+    line-height: 1.08;
+    font-weight: 700;
+    margin: 0 0 1.1rem;
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 3.4vw, 1.9rem);
+    line-height: 1.15;
+    margin: 0 0 .6rem;
+  }
+
+  h3 {
+    font-size: 1.12rem;
+    margin: 0 0 .35rem;
+  }
+
+  p { margin: 0 0 1.05rem; }
+
+  a { color: var(--accent-ink); text-underline-offset: 2px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 1.1rem;
+  }
+
+  .standfirst {
+    font-size: clamp(1.15rem, 2.3vw, 1.32rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  strong { font-weight: 600; color: var(--ink); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: .06em .35em;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 1em; color: inherit; }
+  td code, .want code, .qa code { background: var(--panel); }
+
+  em.term {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    padding: .08em .38em;
+    border-radius: 4px;
+  }
+
+  /* ---------- structure ---------- */
+  header.hero {
+    padding: clamp(3.5rem, 9vw, 6rem) 0 clamp(2.5rem, 6vw, 4rem);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  section {
+    padding: clamp(2.75rem, 6vw, 4.25rem) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: .8rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .sec-num {
+    font-family: var(--mono);
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--accent);
+    flex: none;
+    padding-top: .15rem;
+  }
+
+  .lede { font-size: 1.12rem; color: var(--ink-soft); }
+
+  /* ---------- digit motif ---------- */
+  .pattern {
+    display: inline-flex;
+    gap: .3rem;
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+
+  .pattern span {
+    width: 2.1em;
+    height: 2.5em;
+    display: grid;
+    place-items: center;
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+
+  .pattern span.wild { color: var(--ink-faint); background: var(--panel); }
+  .pattern span.fix { border-color: var(--accent); color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--accent); }
+
+  .hero .pattern { margin-top: 2rem; transform: scale(1.15); transform-origin: left; }
+
+  /* ---------- cards ---------- */
+  .layers {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 40rem) {
+    .layers { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 1.35rem 1.3rem 1.4rem;
+    box-shadow: var(--shadow);
+  }
+
+  .card .q {
+    font-family: var(--mono);
+    font-size: .74rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 .55rem;
+  }
+
+  .card h3 { margin-bottom: .4rem; }
+  .card p { margin: 0; font-size: .96rem; color: var(--ink-soft); line-height: 1.5; }
+  .card p + p { margin-top: .55rem; }
+
+  /* ---------- callout ---------- */
+  .callout {
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 12px;
+    padding: 1.3rem 1.4rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout p { margin: 0; color: var(--accent-ink); }
+  .callout .tag {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: .45rem;
+    opacity: .85;
+  }
+
+  blockquote.say {
+    margin: 1.75rem 0 .5rem;
+    padding-left: 1.15rem;
+    border-left: 3px solid var(--accent);
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(1.15rem, 2.6vw, 1.4rem);
+    line-height: 1.4;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  blockquote.say .who {
+    display: block;
+    margin-top: .6rem;
+    font-family: var(--mono);
+    font-size: .72rem;
+    font-weight: 400;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- concurrency diagram ---------- */
+  .exhibit {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: clamp(1.5rem, 4vw, 2.4rem);
+    margin: 1.75rem 0 .5rem;
+  }
+
+  .exhibit-cap {
+    font-family: var(--serif);
+    font-size: .95rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 1.1rem auto 0;
+    max-width: 36rem;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .race {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: center;
+  }
+  @media (min-width: 44rem) {
+    .race { grid-template-columns: 1fr auto 1fr; gap: 1.5rem; }
+  }
+
+  .actor {
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    padding: .95rem 1.05rem;
+  }
+  .actor .name { font-family: var(--display); font-weight: 600; font-size: 1rem; }
+  .actor .want { font-size: .9rem; color: var(--ink-soft); margin-top: .15rem; }
+  .actor.b { text-align: right; }
+
+  .ledger {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    padding: .75rem;
+  }
+  .ledger .title {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: .1rem 0 .4rem;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    font-family: var(--mono);
+    font-size: .86rem;
+    padding: .4rem .6rem;
+    border-radius: 6px;
+    background: var(--panel);
+  }
+  .row .no { color: var(--ink); font-weight: 600; }
+  .row .who {
+    font-size: .66rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .12em .5em;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .row.a  { background: color-mix(in srgb, var(--accent) 14%, var(--paper)); }
+  .row.a .who  { background: var(--accent); color: #fff; }
+  .row.b  { background: color-mix(in srgb, var(--ok) 15%, var(--paper)); }
+  .row.b .who  { background: var(--ok); color: #fff; }
+  .row.free .who { background: transparent; color: var(--ink-faint); border: 1px solid var(--rule-strong); }
+
+  :root[data-theme="dark"] .row.a .who,
+  :root[data-theme="dark"] .row.b .who { color: #10111a; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .row.a .who,
+    :root:not([data-theme="light"]) .row.b .who { color: #10111a; }
+  }
+
+  /* ---------- SQL (always a dark block, both themes) ---------- */
+  pre {
+    margin: 1.25rem 0;
+    padding: 1.1rem 1.2rem;
+    background: #14161e;
+    color: #e9eaf1;
+    border: 1px solid #2b2e3d;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .82rem;
+    line-height: 1.65;
+  }
+  pre .k { color: #b9bcff; font-weight: 600; }
+  pre .c { color: #9297a8; font-style: italic; }
+  pre .hl { color: #ffd27d; font-weight: 600; }
+
+  /* ---------- tables ---------- */
+  .tbl-scroll { overflow-x: auto; margin: 1.4rem 0 .4rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .93rem;
+    min-width: 34rem;
+  }
+  th, td {
+    text-align: left;
+    padding: .7rem .85rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td strong { font-family: var(--display); font-size: .96rem; }
+  td.verdict { font-family: var(--mono); font-size: .8rem; color: var(--ink-faint); white-space: nowrap; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .82rem;
+    padding: .1em .5em;
+    border-radius: 5px;
+    background: var(--panel);
+    border: 1px solid var(--rule-strong);
+  }
+
+  /* ---------- Q&A ---------- */
+  .qa { display: flex; flex-direction: column; gap: 1.35rem; }
+  .qa .item { }
+  .qa .prompt {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin: 0 0 .3rem;
+  }
+  .qa .prompt::before {
+    content: "Q";
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--accent);
+    margin-right: .55rem;
+    letter-spacing: .1em;
+  }
+  .qa .answer { margin: 0; color: var(--ink-soft); font-size: .99rem; }
+  .qa .answer::before {
+    content: "A";
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--ink-faint);
+    margin-right: .55rem;
+    letter-spacing: .1em;
+  }
+
+  /* ---------- lifecycle ---------- */
+  .life {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem;
+    font-family: var(--mono);
+    font-size: .85rem;
+    margin: 1.3rem 0 .5rem;
+  }
+  .life .state {
+    padding: .35em .7em;
+    border-radius: 999px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper);
+    font-weight: 600;
+  }
+  .life .state.avail { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .life .state.res   { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+  .life .state.sold  { color: var(--sold); border-color: color-mix(in srgb, var(--sold) 45%, transparent); }
+  .life .arrow { color: var(--ink-faint); }
+  .life .lbl { color: var(--ink-faint); font-size: .74rem; }
+
+  /* ---------- timing bar ---------- */
+  .timing { display: grid; gap: .75rem; margin: 1.3rem 0 .3rem; }
+  .timing .t-row { display: grid; grid-template-columns: 1fr; gap: .3rem; }
+  @media (min-width: 34rem) {
+    .timing .t-row { grid-template-columns: 12rem 1fr; align-items: center; gap: 1rem; }
+  }
+  .timing .t-label { font-size: .92rem; color: var(--ink-soft); }
+  .timing .t-track { background: var(--panel); border-radius: 999px; height: .7rem; position: relative; overflow: hidden; }
+  .timing .t-fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 999px; }
+  .timing .t-val { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); }
+
+  /* ---------- footer ---------- */
+  footer {
+    padding: clamp(2.75rem, 6vw, 4rem) 0 clamp(3.5rem, 8vw, 5rem);
+  }
+  .tldr {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    margin-bottom: 1.75rem;
+  }
+  .tldr h3 { margin-bottom: .5rem; }
+  .tldr p { margin: 0; color: var(--ink-soft); }
+
+  .clock {
+    display: grid;
+    gap: .9rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 40rem) { .clock { grid-template-columns: 1fr 1fr; } }
+  .clock .slot {
+    border: 1px dashed var(--rule-strong);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .clock .slot h4 {
+    margin: 0 0 .5rem;
+    font-family: var(--mono);
+    font-size: .78rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }
+  .clock ol { margin: 0; padding-left: 1.1rem; font-size: .92rem; color: var(--ink-soft); }
+  .clock li { margin: .3rem 0; }
+
+  ul.clean { margin: 0 0 1.05rem; padding-left: 1.15rem; }
+  ul.clean li { margin: .35rem 0; }
+
+  hr.soft { border: none; border-top: 1px solid var(--rule); margin: 1.75rem 0; }
+
+  ::selection { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Part 2 &middot; Design exercise &middot; No code</p>
+    <h1>Ten million tickets, and the one that must not be handed out twice</h1>
+    <p class="standfirst">
+      The dataset is <strong>400&nbsp;MB</strong>. It fits in memory. So the interesting
+      question was never &ldquo;how do we search fast&rdquo; &mdash; it&rsquo;s
+      &ldquo;how do two people searching the same pattern at the same instant never get
+      the same ticket.&rdquo;
+    </p>
+    <div class="pattern" aria-label="pattern: star star star star two three">
+      <span class="wild">&lowast;</span><span class="wild">&lowast;</span><span class="wild">&lowast;</span><span class="wild">&lowast;</span><span class="fix">2</span><span class="fix">3</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>The reframe: it&rsquo;s a concurrency problem wearing a search problem&rsquo;s clothes</h2>
+    </div>
+    <p class="lede">
+      Open with the numbers. They quietly decide every later choice, and they show the
+      interviewer you sized the problem before reaching for technology.
+    </p>
+
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>What</th><th>Number</th><th>So&hellip;</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Distinct 6-digit values</td><td><span class="pill">1,000,000</span></td><td>with 10M tickets, ~10 tickets share every number</td></tr>
+          <tr><td>Whole dataset in RAM</td><td><span class="pill">~400 MB</span></td><td>one Postgres box holds it all &mdash; no sharding, no cluster</td></tr>
+          <tr><td>Matches for a 2-digit pattern</td><td><span class="pill">~100,000</span></td><td>3 digits &rarr; ~10k, 1 digit &rarr; ~1M (cap those)</td></tr>
+          <tr><td>Possible patterns</td><td><span class="pill">~1.77M</span></td><td>too many to pre-compute and keep fresh &mdash; compute on demand</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <span class="tag">The line to say</span>
+      <p>&ldquo;This isn&rsquo;t a big-data problem. The data is small. It&rsquo;s a
+      <strong>concurrent allocation</strong> problem &mdash; so I picked the storage engine
+      for its locking primitive, not its query speed.&rdquo;</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Three layers, three questions</h2>
+    </div>
+    <p class="lede">Structure the whole answer as these three. If you only have two minutes, this slide <em>is</em> the design.</p>
+  </div>
+
+  <div class="bleed">
+    <div class="layers">
+      <div class="card">
+        <p class="q">Where does it live?</p>
+        <h3>Storage</h3>
+        <p><strong>PostgreSQL</strong>, single primary.</p>
+        <p>Small data, ACID reservations, and one killer feature &mdash; see layer 3.</p>
+      </div>
+      <div class="card">
+        <p class="q">How do we match a pattern?</p>
+        <h3>Search</h3>
+        <p>Split each number into <strong>6 digit columns</strong> + a reversed copy.</p>
+        <p>Prefix &rarr; range scan. Suffix &rarr; range scan on the reverse. Scattered &rarr; bitmap-AND the fixed digits.</p>
+      </div>
+      <div class="card">
+        <p class="q">How do we hand tickets out without collisions?</p>
+        <h3>Allocation</h3>
+        <p><strong><em class="term">SELECT &hellip; FOR UPDATE SKIP LOCKED</em></strong> plus a short reservation lease.</p>
+        <p>Concurrent requests get disjoint rows, and nobody waits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>The mechanism to nail</h2>
+    </div>
+    <p>
+      Everything else is supporting detail. This is the part the interviewer is actually
+      testing, so slow down here. One SQL statement does the search <em>and</em> the
+      reservation together:
+    </p>
+
+    <pre><span class="k">WITH</span> picked <span class="k">AS</span> (
+  <span class="k">SELECT</span> id <span class="k">FROM</span> tickets
+  <span class="k">WHERE</span> d5 = 2 <span class="k">AND</span> d6 = 3                <span class="c">-- pattern ****23</span>
+    <span class="k">AND</span> (status = <span class="hl">'available'</span>
+         <span class="k">OR</span> (status = <span class="hl">'reserved'</span> <span class="k">AND</span> reserved_until &lt;= now()))
+  <span class="k">ORDER BY</span> id
+  <span class="hl">FOR UPDATE SKIP LOCKED</span>                    <span class="c">-- &larr; the whole trick</span>
+  <span class="k">LIMIT</span> :count
+)
+<span class="k">UPDATE</span> tickets t
+   <span class="k">SET</span> status = <span class="hl">'reserved'</span>, reserved_by = :user,
+       reserved_until = now() + <span class="k">interval</span> <span class="hl">'5 minutes'</span>
+  <span class="k">FROM</span> picked <span class="k">WHERE</span> t.id = picked.id
+<span class="k">RETURNING</span> t.id, t.number;</pre>
+
+    <p class="lede" style="margin-top:1.4rem">What <em class="term">SKIP LOCKED</em> actually does:</p>
+  </div>
+
+  <div class="bleed">
+    <div class="exhibit">
+      <div class="race">
+        <div class="actor a">
+          <div class="name">User&nbsp;A</div>
+          <div class="want">wants 3 tickets matching <code>****23</code></div>
+        </div>
+        <div style="text-align:center;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)">same<br>instant</div>
+        <div class="actor b">
+          <div class="name">User&nbsp;B</div>
+          <div class="want">wants 3 tickets matching <code>****23</code></div>
+        </div>
+      </div>
+
+      <div class="ledger" style="margin-top:1.25rem">
+        <div class="title">tickets ending 23 &mdash; who gets what</div>
+        <div class="row a"><span class="no">100123</span><span class="who">A</span></div>
+        <div class="row a"><span class="no">204523</span><span class="who">A</span></div>
+        <div class="row a"><span class="no">339923</span><span class="who">A</span></div>
+        <div class="row b"><span class="no">417723</span><span class="who">B</span></div>
+        <div class="row b"><span class="no">550023</span><span class="who">B</span></div>
+        <div class="row b"><span class="no">688123</span><span class="who">B</span></div>
+        <div class="row free"><span class="no">799223</span><span class="who">free</span></div>
+        <div class="row free"><span class="no">812323</span><span class="who">free</span></div>
+      </div>
+
+      <p class="exhibit-cap">B&rsquo;s query stepped over the three rows A had locked and took the next three.
+      Disjoint by construction &mdash; neither query blocked, no application lock, no queue, no coordination service.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <blockquote class="say">
+      &ldquo;Two users hit the same pattern at the same time. A locks the first three rows;
+      B doesn&rsquo;t wait for A &mdash; it steps over the locked rows and takes the next
+      three. The database guarantees they can&rsquo;t overlap.&rdquo;
+      <span class="who">&mdash; the 20-second version of the whole design</span>
+    </blockquote>
+
+    <hr class="soft">
+
+    <h3>Then: the reservation is a lease, not a lock forever</h3>
+    <div class="life">
+      <span class="state avail">available</span>
+      <span class="arrow">&rarr;</span>
+      <span class="lbl">reserve</span>
+      <span class="state res">reserved &middot; 5 min</span>
+      <span class="arrow">&rarr;</span>
+      <span class="lbl">confirm</span>
+      <span class="state sold">sold</span>
+    </div>
+    <p style="margin-top:.9rem">
+      If the buyer walks away, the lease just expires &mdash; the <code>WHERE</code> clause
+      above already treats an expired reservation as available, so <strong>correctness never
+      depends on a cleanup job</strong>. A reaper sweeps expired rows every 30s purely for tidiness.
+    </p>
+    <p>
+      Belt and braces: a partial unique index (<code>one live reservation per ticket</code>),
+      an idempotency key per request, and a re-check of <code>reserved_by</code> on confirm.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Why Postgres and not&hellip;</h2>
+    </div>
+    <p class="lede">Have the alternatives ready. The point isn&rsquo;t that they&rsquo;re wrong &mdash; it&rsquo;s that you weighed them.</p>
+
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Option</th><th>Real strength</th><th>Why not the primary</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Redis</strong></td>
+            <td><code>SET NX EX</code> is an atomic per-ticket lease with a built-in TTL</td>
+            <td>not a system of record &mdash; still need a durable store behind it. Keep it as an <em>optional</em> lease layer, not the source of truth.</td>
+          </tr>
+          <tr>
+            <td><strong>Elasticsearch</strong></td>
+            <td>native <code>wildcard</code> / <code>regexp</code> queries, scales out</td>
+            <td>no row-lock equivalent &mdash; you&rsquo;d bolt Postgres or Redis on for allocation anyway. Overkill for 10M fixed-format rows.</td>
+          </tr>
+          <tr>
+            <td><strong>MongoDB</strong></td>
+            <td><code>findAndModify</code> is atomic per document</td>
+            <td>no <code>SKIP LOCKED</code>: concurrent claimers collide on the same &ldquo;first&rdquo; docs and retry, wasting work. Wildcards only index when prefix-anchored.</td>
+          </tr>
+          <tr>
+            <td><strong>Precompute every pattern</strong></td>
+            <td>O(1) lookup</td>
+            <td>1.77M keys to maintain on every ticket change; most never read. Compute on demand + cache the hot ones instead.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>Search, in one minute</h2>
+    </div>
+    <p>
+      Secondary to allocation, but be ready to go deep. The trick is to <strong>denormalise
+      the number</strong> so every pattern shape hits an index.
+    </p>
+
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Shape</th><th>How it&rsquo;s served</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pattern"><span class="fix">1</span><span class="fix">2</span><span class="fix">3</span><span class="wild">*</span><span class="wild">*</span><span class="wild">*</span></span></td><td>prefix</td><td>B-tree range scan on <code>number</code> (<code>LIKE '123%'</code>)</td></tr>
+          <tr><td><span class="pattern"><span class="wild">*</span><span class="wild">*</span><span class="wild">*</span><span class="fix">4</span><span class="fix">5</span><span class="fix">6</span></span></td><td>suffix</td><td>range scan on a stored <code>reverse(number)</code> column</td></tr>
+          <tr><td><span class="pattern"><span class="fix">1</span><span class="wild">*</span><span class="fix">3</span><span class="wild">*</span><span class="fix">5</span><span class="wild">*</span></span></td><td>scattered</td><td>bitmap-AND of the single-column indexes on <code>d1, d3, d5</code></td></tr>
+          <tr><td><span class="pattern"><span class="wild">*</span><span class="wild">*</span><span class="wild">*</span><span class="wild">*</span><span class="wild">*</span><span class="fix">7</span></span></td><td>1 fixed digit</td><td>&sim;1M matches &mdash; allowed for browse only, hard <code>LIMIT</code>, no allocation</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:1.4rem">
+      <strong>If they ask for microseconds:</strong> keep an in-memory
+      <strong>Roaring bitmap</strong> per (position, digit) &mdash; 60 sets total, ~50&ndash;100&nbsp;MB.
+      A query ANDs the bitmaps for the fixed positions. It&rsquo;s only a <em>filter</em>:
+      every candidate is still reserved in Postgres, so the bitmap can lag without ever
+      causing a double-allocation.
+    </p>
+
+    <div class="timing">
+      <div class="t-row">
+        <div class="t-label">Candidate gen, 3+ digits &mdash; Postgres</div>
+        <div class="t-track"><span class="t-fill" style="width:14%"></span></div>
+      </div>
+      <div class="t-row">
+        <div class="t-label">Candidate gen, 2 digits &mdash; Postgres</div>
+        <div class="t-track"><span class="t-fill" style="width:52%"></span></div>
+      </div>
+      <div class="t-row">
+        <div class="t-label">Same, with Roaring bitmap</div>
+        <div class="t-track"><span class="t-fill" style="width:3%"></span></div>
+      </div>
+      <div class="t-row">
+        <div class="t-label">Search-and-reserve (&le;50 rows)</div>
+        <div class="t-track"><span class="t-fill" style="width:9%"></span></div>
+      </div>
+    </div>
+    <p class="t-val" style="margin-top:.2rem">Relative, single node, 10M rows. Postgres 2-digit case ~3&ndash;30&nbsp;ms; everything else sub-millisecond.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>If they push</h2>
+    </div>
+
+    <div class="qa">
+      <div class="item">
+        <p class="prompt">What if it grows to a billion tickets?</p>
+        <p class="answer">Hash-partition <code>tickets</code> by id or by first digit. <code>SKIP LOCKED</code> works per partition. Reads go to replicas; the primary only carries reservation writes. The in-memory index shards by first digit, scatter-gather.</p>
+      </div>
+      <div class="item">
+        <p class="prompt">A user reserves tickets and never buys. Now what?</p>
+        <p class="answer">The lease expires. The allocation query&rsquo;s <code>WHERE</code> clause already counts an expired reservation as available, so the ticket is claimable again immediately &mdash; the reaper job is just housekeeping, not a correctness dependency.</p>
+      </div>
+      <div class="item">
+        <p class="prompt">Everyone searches the same popular pattern. Lock contention?</p>
+        <p class="answer">No &mdash; that&rsquo;s the whole point of <code>SKIP LOCKED</code>. Requests touch <em>disjoint</em> rows, so throughput scales near-linearly with concurrent users. There&rsquo;s no global pattern lock to queue on.</p>
+      </div>
+      <div class="item">
+        <p class="prompt">The in-memory index is stale &mdash; isn&rsquo;t that a bug?</p>
+        <p class="answer">It&rsquo;s advisory only. A stale candidate that&rsquo;s already taken simply fails the Postgres reservation and gets skipped. Worst case is one wasted reserve attempt, never a wrong result.</p>
+      </div>
+      <div class="item">
+        <p class="prompt">Clock skew between app servers?</p>
+        <p class="answer">All lease math uses <code>now()</code> <em>inside the SQL</em> &mdash; the database clock, never the app server&rsquo;s. One clock, no skew.</p>
+      </div>
+      <div class="item">
+        <p class="prompt">API pod crashes mid-reservation?</p>
+        <p class="answer">The transaction rolls back. Rows are never left locked; there&rsquo;s nothing to clean up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="tldr">
+      <h3>The 30-second version</h3>
+      <p>
+        Store 10M tickets in one Postgres instance &mdash; the data&rsquo;s tiny. Split each
+        number into digit columns so any wildcard shape hits an index. Hand tickets out with
+        a single <code>SELECT &hellip; FOR UPDATE SKIP LOCKED</code> + <code>UPDATE</code>:
+        concurrent users for the same pattern get disjoint rows and nobody blocks. Reservations
+        are 5-minute leases that self-heal on expiry. Add an in-memory Roaring-bitmap index and
+        Redis leases only if search QPS demands it &mdash; neither can compromise correctness.
+      </p>
+    </div>
+
+    <div class="clock">
+      <div class="slot">
+        <h4>You have 2 minutes</h4>
+        <ol>
+          <li>&ldquo;Data is 400 MB &mdash; concurrency problem, not search.&rdquo;</li>
+          <li>Storage / Search / Allocation (layer 2 card).</li>
+          <li>Draw the <code>SKIP LOCKED</code> race. Stop there.</li>
+        </ol>
+      </div>
+      <div class="slot">
+        <h4>You have 8 minutes</h4>
+        <ol>
+          <li>The 2-minute version.</li>
+          <li>The lease lifecycle + why cleanup isn&rsquo;t load-bearing.</li>
+          <li>Alternatives table &mdash; Redis, ES, Mongo, precompute.</li>
+          <li>Digit-column search + the Roaring-bitmap upgrade.</li>
+          <li>Take two questions from section 06.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

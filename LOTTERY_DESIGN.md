@@ -1,6 +1,9 @@
 # Lottery Ticket Search System — Design Proposal
 
 > Design exercise only. No implementation. Section 2 of the coding test.
+>
+> A presentation-oriented walkthrough of this same design lives at
+> [`docs/lottery-brief.html`](docs/lottery-brief.html) — open it in a browser.
 
 ## 1. Problem statement
 
