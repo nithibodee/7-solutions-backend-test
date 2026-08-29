@@ -13,6 +13,8 @@ type BcryptHasher struct {
 	cost int
 }
 
+var _ domain.PasswordHasher = (*BcryptHasher)(nil)
+
 // NewBcryptHasher returns a hasher. A cost <= 0 falls back to bcrypt.DefaultCost.
 func NewBcryptHasher(cost int) *BcryptHasher {
 	if cost <= 0 {

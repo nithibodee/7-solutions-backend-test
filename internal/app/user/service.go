@@ -46,6 +46,8 @@ type service struct {
 	now    func() time.Time
 }
 
+var _ Service = (*service)(nil)
+
 // NewService wires the use-cases with their ports.
 func NewService(repo domain.Repository, hasher domain.PasswordHasher, tokens domain.TokenIssuer) Service {
 	return &service{repo: repo, hasher: hasher, tokens: tokens, now: time.Now}

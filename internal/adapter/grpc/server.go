@@ -20,6 +20,8 @@ type Server struct {
 	svc appuser.Service
 }
 
+var _ userv1.UserServiceServer = (*Server)(nil)
+
 // NewServer returns a gRPC server backed by the given application service.
 func NewServer(svc appuser.Service) *Server {
 	return &Server{svc: svc}

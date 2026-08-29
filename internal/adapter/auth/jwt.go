@@ -23,6 +23,11 @@ type JWTManager struct {
 	now    func() time.Time
 }
 
+var (
+	_ domain.TokenIssuer    = (*JWTManager)(nil)
+	_ domain.TokenValidator = (*JWTManager)(nil)
+)
+
 // NewJWTManager returns a manager. A ttl <= 0 defaults to 24h.
 func NewJWTManager(secret, issuer string, ttl time.Duration) *JWTManager {
 	if ttl <= 0 {

@@ -42,6 +42,8 @@ type UserRepository struct {
 	coll *mongo.Collection
 }
 
+var _ domain.Repository = (*UserRepository)(nil)
+
 // NewUserRepository returns a repository bound to the "users" collection of db.
 func NewUserRepository(db *mongo.Database) *UserRepository {
 	return &UserRepository{coll: db.Collection(collectionName)}
