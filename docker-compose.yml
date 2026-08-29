@@ -1,0 +1,39 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${API_HTTP_PORT:-8080}:8080"
+      - "${API_GRPC_PORT:-9090}:9090"
+    environment:
+      HTTP_PORT: "8080"
+      GRPC_PORT: "9090"
+      MONGO_URI: "mongodb://mongo:27017"
+      MONGO_DB: "usermgmt"
+      JWT_SECRET: "${JWT_SECRET:-dev-super-secret-change-me}"
+      JWT_ISSUER: "user-management-api"
+      JWT_TTL: "24h"
+      USER_COUNT_INTERVAL: "10s"
+      GRPC_AUTH: "false"
+      LOG_LEVEL: "info"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
