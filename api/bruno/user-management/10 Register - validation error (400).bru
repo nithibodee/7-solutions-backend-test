@@ -1,0 +1,24 @@
+meta {
+  name: 10 Register - validation error (400)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "x",
+    "email": "not-an-email",
+    "password": "short"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.code: eq invalid_request
+}

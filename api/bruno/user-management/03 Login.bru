@@ -1,0 +1,34 @@
+meta {
+  name: 03 Login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "alice@example.com",
+    "password": "password123"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    // runtime var (not persisted to disk) - every protected request reads {{token}}
+    bru.setVar("token", res.getBody().token);
+  }
+}
+
+docs {
+  Stores the returned JWT in the runtime `token` variable, which every
+  protected request below reads via `auth:bearer`.
+}

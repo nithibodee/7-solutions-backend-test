@@ -1,0 +1,20 @@
+meta {
+  name: 07 Get User by ID
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{userId}}
+}

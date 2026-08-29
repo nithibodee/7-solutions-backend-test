@@ -1,0 +1,30 @@
+meta {
+  name: 06 List Users
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const users = res.getBody().users;
+  if (users && users.length > 0) {
+    bru.setVar("userId", users[0].id);
+  }
+}
+
+docs {
+  Captures the first user's id into `userId` for the Get/Update/Delete requests.
+}

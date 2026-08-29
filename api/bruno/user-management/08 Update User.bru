@@ -1,0 +1,31 @@
+meta {
+  name: 08 Update User
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/api/users/{{userId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Alice Cooper"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.name: eq Alice Cooper
+}
+
+docs {
+  Partial update: send `name`, `email`, or both. An empty body {} returns
+  400 empty_update.
+}

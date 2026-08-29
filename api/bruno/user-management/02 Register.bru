@@ -1,0 +1,31 @@
+meta {
+  name: 02 Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "password": "password123"
+  }
+}
+
+assert {
+  res.status: in [201, 409]
+}
+
+docs {
+  Public sign-up. On a fresh database this returns 201 with the created user
+  (the response never contains a password field). Re-running against a database
+  that already has this user returns 409 email_taken - both are accepted here so
+  the collection stays re-runnable. Start clean with:
+  `docker compose down -v && docker compose up`.
+}
